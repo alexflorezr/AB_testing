@@ -1,0 +1,1 @@
+TotalIntench2 	FiberWidthCh1	PerimStatusCh1	VarIntenCh423000	10	2	50000	10		10057000	8		100	8	2	100
