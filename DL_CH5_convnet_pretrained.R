@@ -12,7 +12,7 @@ datagen <- image_data_generator(
         horizontal_flip = TRUE,
         fill_mode = "nearest"
 )
-# visualize some of the new images
+## visualize some of the new images
 fnames <- list.files(train_cats_dir, full.names = TRUE)
 img_path <- fnames[[3]]                                             
 img <- image_load(img_path, target_size = c(150, 150))               
@@ -180,11 +180,79 @@ history <- model %>% fit(
         batch_size = 20,
         validation_data = list(validation$features, validation$labels)
 )
-#       use previous networks: fine-tuning
+# fine-tunning steps
+# 1) Add your custom network on top of an already-trained base network.
+# 2) Freeze the base network.
+# 3) Train the part you added.
+# 4) Unfreeze some layers in the base network.
+# 5) Jointly train both these layers and the part you added.
 
-
-
-
-
+# step 1, adding densely conected layers on top of your pretrained net
+model <- keras_model_sequential() %>%
+        conv_base %>%
+        layer_flatten() %>%
+        layer_dense(units = 256, activation = "relu") %>%
+        layer_dense(units = 1, activation = "sigmoid")
+# step 2, freeze the pretrained network
+freeze_weights(conv_base)
+cat("This is the number of trainable weights after freezing",
+      "the conv base:", length(model$trainable_weights), "\n")
+# step 3, train the model end to end with a frozen convolutional base
+# image generator with augmentation
+train_datagen = image_data_generator(
+        rescale = 1/255,
+        rotation_range = 40,
+        width_shift_range = 0.2,
+        height_shift_range = 0.2,
+        shear_range = 0.2,
+        zoom_range = 0.2,
+        horizontal_flip = TRUE,
+        fill_mode = "nearest"
+)
+# re-scaled image generator for the test data
+test_datagen <- image_data_generator(rescale = 1/255)
+# getting the training images
+train_generator <- flow_images_from_directory(train_dir,train_datagen,
+                                              target_size = c(150, 150),
+                                              batch_size = 20,
+                                              class_mode = "binary"
+                                              )
+# getting the validation images
+validation_generator <- flow_images_from_directory(validation_dir,test_datagen,
+                                                   target_size = c(150, 150),
+                                                   batch_size = 20,
+                                                   class_mode = "binary"
+                                                   )
+# compile the model, very small value for the optimizer
+model %>% compile(
+        loss = "binary_crossentropy",
+        optimizer = optimizer_rmsprop(lr = 2e-5),
+        metrics = c("accuracy")
+)
+# NOT RUN 
+# the model fiting must be run on GPU
+# run until here to extract features with image augmentation
+history <- model %>% fit_generator(
+        train_generator,
+        steps_per_epoch = 100,
+        epochs = 30,
+        validation_data = validation_generator,
+        validation_steps = 50
+)
+# step 4
+unfreeze_weights(conv_base, from = "block3_conv1")
+# step 5, fine tune the model
+model %>% compile(
+        loss = "binary_crossentropy",
+        optimizer = optimizer_rmsprop(lr = 1e-5),
+        metrics = c("accuracy")
+)
+history <- model %>% fit_generator(
+        train_generator,
+        steps_per_epoch = 100,
+        epochs = 100,
+        validation_data = validation_generator,
+        validation_steps = 50
+)
 
 
