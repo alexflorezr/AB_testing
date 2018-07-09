@@ -53,9 +53,28 @@ for (i in 1:length(samples)) {
 # tonkezation on Keras 
 library(keras)
 samples <- c("The cat sat on the mat.", "The dog ate my homework.")
+# the text_tokenizer vectorize the data, the fit_text_tokenizer fit the tokens to
+#       to the actual data.
+# the tokenizer has a complex structure with multiple attributes
 tokenizer <- text_tokenizer(num_words = 1000) %>% fit_text_tokenizer(samples)                                        
 sequences <- texts_to_sequences(tokenizer, samples)                       
 one_hot_results <- texts_to_matrix(tokenizer, samples, mode = "binary")   
 word_index <- tokenizer$word_index                                        
 cat("Found", length(word_index), "unique tokens.\n")
+
+## ---- hashFunction ---- 
+library(hashFunction)
+samples <- c("The cat sat on the mat.", "The dog ate my homework.")
+dimensionality <- 1000                                                  
+max_length <- 10
+# creates an empty array
+results <- array(0, dim = c(length(samples), max_length, dimensionality))
+for (i in 1:length(samples)) {
+        sample <- samples[[i]]
+        words <- head(strsplit(sample, " ")[[1]], n = max_length)
+        for (j in 1:length(words)) {
+                index <- abs(spooky.32(words[[i]])) %% dimensionality               
+                results[[i, j, index]] <- 1
+        }
+}
 
