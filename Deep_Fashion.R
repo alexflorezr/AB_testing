@@ -1,4 +1,4 @@
-# describing the data
+## ---- describing the data ----
 # neural network for DeepFashion data
 root <- "~/Desktop/A/Me/DeepFashion"
 dir <- dir(file.path(root, "img"))
@@ -12,41 +12,55 @@ sd(x)
 length(dir(file.path(root, "img"), recursive = T))
 img <- image_load(dir(file.path(root, "img", dir[1]), full.names = T)[1])
 img <- image_to_array(img)
-plot(as.raster(img,max = 255)) termi
+plot(as.raster(img,max = 255))
 
-
-# read the category text
-# I changed the end-line character for \n and multiple spaces by \t
-# d -e 's/\/n/\\n/g' list_attr_img.txt > list_attr_img_end.txt
-# sed -e 's/jpg */jpg    /g' list_attr_img_end.txt > list_attr_img_end2.txt
+## ---- upload labels ----
+# the data is read after replacing multiple spaces for single spaces
 attr_img_file <- file.path(root, "attr_img_short.txt")
 attr_img <- read.delim(attr_img_file, skip = 2, h=F, stringsAsFactors = F, sep=" ",
                        row.names=1)
-dim(attr_img)
-attr_img2 <- as.integer(attr_img)
-dim(attr_img)
-# create an empty dataframe
-to_df <- function(attr_img){
-        df <- data.frame(matrix(nrow=dim(attr_img)[1], ncol=1000))
-        row.names(df) <- attr_img[,1]
-        for(i in 1:dim(attr_img)[1]){
-                tmp_labels <- attr_img[,2]
-                tmp_vec <- as.vector(strsplit(tmp_labels, split = " ")[[1]])
-                tmp_null <- which(tmp_vec == "")
-                if(length(tmp_null) > 0){
-                        tmp_vec <- tmp_vec[-tmp_null]
+# have to transpose the dataframe to convert it into an array
+img_array <- array_reshape(t(attr_img), dim=c(98, 1000))
+read.delim(attr_img_file, skip = 2, h=F, stringsAsFactors = F, sep=" ",
+           row.names=1)
+## ---- upload images ----
+# function to read the images from the directory 
+# use the file list_eval_partition to create train, val and test directories
+path_partition <- file.path(root, "list_eval_partition_single_space.txt")
+partition  <- read.delim(path_partition, skip = 2, h=F, stringsAsFactors = F, sep=" ")
+head(partition)
+partition_train <- partition[which(partition[,2] == "train"),]
+partition_val <- partition[which(partition[,2] == "val"),]
+partition_test  <- partition[which(partition[,2] == "test"),]
+# function to create the data partition 
+create_partition <- function(name_dir, file, whereto){
+        directories <- dir(file.path(whereto, "img"))
+        setwd(whereto)
+        for(d in 1:length(directories)){
+                data_dir <- file.path(whereto, name_dir, directories[d])
+                if(!dir.exists(data_dir)){
+                        dir.create(data_dir)
                 }
-                df[i,] <- tmp_vec
-                print(i)
+                which(as.vector(file[,1]))
+                file.copy(as.vector(file[,1]), file.path(whereto, name_dir))
         }
 }
-DF_df <- to_df(attr_img)
+create_partition("Train", partition_train, root)
+create_partition("Validation", partition_val, root)
+create_partition("Test", partition_test, root)
 
-        ## ---- train_val_test ----
-# segmentate the data into 3 different directories
 
-train_dir
-val_dir
-test_dir 
 
-       
+image_generator <- image_data_generator(rescale = 1/255)
+generator <- flow_images_from_directory(directory=root,
+                                        generator = image_generator,
+                                        target_size = c(300,205),
+                                        batch_size = 32, 
+                                        class_mode = "binary"
+                                        )
+batch <- generator_next(generator)
+par(mfrow=c(6,5), mar=c(0,0,0,0))
+for(b in 1:30){
+        plot(as.raster(batch[[1]][b,,,]))
+}
+
