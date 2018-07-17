@@ -56,11 +56,18 @@ samples <- c("The cat sat on the mat.", "The dog ate my homework.")
 # the text_tokenizer vectorize the data, the fit_text_tokenizer fit the tokens to
 #       to the actual data.
 # the tokenizer has a complex structure with multiple attributes
-tokenizer <- text_tokenizer(num_words = 1000) %>% fit_text_tokenizer(samples)                                        
-sequences <- texts_to_sequences(tokenizer, samples)                       
-one_hot_results <- texts_to_matrix(tokenizer, samples, mode = "binary")   
-word_index <- tokenizer$word_index                                        
+# use the text_tokenizer and the fit_text_tokenizer together using %>%
+tokenizer <- text_tokenizer(num_words = 1000) %>% fit_text_tokenizer(samples)
+# list of the word level tokens for each sentence
+sequences <- texts_to_sequences(tokenizer, samples)
+# array of binary vectors
+one_hot_results <- texts_to_matrix(tokenizer, samples, mode = "binary")
+word_index <- tokenizer$word_index
+# to get back the sentence
+names(word_index[match(sequences[[1]], unlist(word_index))])
+# count the unique number of tokens in the text
 cat("Found", length(word_index), "unique tokens.\n")
+
 
 ## ---- hashFunction ---- 
 library(hashFunction)
