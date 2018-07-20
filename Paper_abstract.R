@@ -1,7 +1,5 @@
 # tokenize all the available abstracts from:
-#       Ecography
 #       Journal of biogeography
-#       Global ecology and biogeography
 #       Diversity and distributions
 # the first NN will be a binary classification using divdis and jbio
 root <- "~/Desktop/A/Me/Papers_abstracts"
