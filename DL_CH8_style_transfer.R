@@ -2,9 +2,9 @@
 ## ---- initial variables ----
 # defining initial variables
 library(keras)
-target_image_path <- "~/Desktop/botero2.png"                              
-style_reference_image_path <- "~/Desktop/condo1.png"     
-img <- image_load(target_image_path)                                 
+target_image_path <- "~/Desktop/edith.png"                             
+style_reference_image_path <- "~/Desktop/kandinsky.png"     
+img <- image_load(target_image_path)
 width <- img$size[[1]]
 height <- img$size[[2]]
 img_nrows <- 400
@@ -17,19 +17,17 @@ preprocess_image <- function(path) {
                 array_reshape(c(1, dim(.)))
         imagenet_preprocess_input(img)
 }
-
 deprocess_image <- function(x) {
         x <- x[1,,,]
         x[,,1] <- x[,,1] + 103.939                   
         x[,,2] <- x[,,2] + 116.779                   
         x[,,3] <- x[,,3] + 123.68                    
         x <- x[,,c(3,2,1)]                           
-        x[x > 255] <- 25
-        x[x < 0] <- 
+        x[x > 255] <- 255
+        x[x < 0] <- 0
         x[] <- as.integer(x)/255
         x
 }
-
 ## ---- load pretrained ---- 
 target_image <- k_constant(preprocess_image(target_image_path))
 style_reference_image <- k_constant(preprocess_image(style_reference_image_path))
@@ -149,8 +147,8 @@ for (i in 1:iterations) {
         image <- x <- opt$par
         image <- array_reshape(image, dms)
         im <- deprocess_image(image)
-        plot(as.raster(abs(im)))
+        plot(as.raster(im))
 }
-str(im)
+str(im) 
 max(im)
 min(im)
