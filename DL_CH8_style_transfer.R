@@ -2,8 +2,8 @@
 ## ---- initial variables ----
 # defining initial variables
 library(keras)
-target_image_path <- "~/Desktop/edith.png"                             
-style_reference_image_path <- "~/Desktop/kandinsky.png"     
+target_image_path <- "~/Desktop/surf.png"                             
+style_reference_image_path <- "~/Desktop/prada.png"     
 img <- image_load(target_image_path)
 width <- img$size[[1]]
 height <- img$size[[2]]
@@ -72,9 +72,9 @@ total_variation_loss <- function(x) {
 outputs_dict <- lapply(model$layers, `[[`, "output")                      
 names(outputs_dict) <- lapply(model$layers, `[[`, "name")
 content_layer <- "block5_conv2"                                           
-style_layers = c("block1_conv1", "block2_conv1",                          
-                 "block3_conv1", "block4_conv1",                          
-                 "block5_conv1")                                          
+# style_layers = c("block1_conv1", "block2_conv1","block3_conv1", "block4_conv1","block5_conv1")
+# use a style layer with only the top layers
+style_layers = c("block3_conv1", "block4_conv1", "block5_conv1")  
 total_variation_weight <- 1e-4                                            
 style_weight <- 1.0                                                       
 content_weight <- 0.025                                                   
@@ -149,6 +149,4 @@ for (i in 1:iterations) {
         im <- deprocess_image(image)
         plot(as.raster(im))
 }
-str(im) 
-max(im)
-min(im)
+
